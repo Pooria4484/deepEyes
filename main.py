@@ -1,29 +1,63 @@
 from flask import Flask, render_template, Response
 import cv2
 from ultralytics import YOLO
-
-# Load YOLO11x model (make sure the file exists at this path)
-model = YOLO("yolo11x.pt")
-
+import pyttsx3
+import threading
+import time
 
 app = Flask(__name__)
 
-camera = cv2.VideoCapture(1)  # Use 0 for webcam
+# Load YOLO11x model
+model = YOLO("yolo11x.pt")
+
+# Webcam setup
+camera = cv2.VideoCapture(1)  # Change to 1 if needed
+camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
+# Text-to-speech setup
+engine = pyttsx3.init()
+engine.setProperty('rate', 150)
+
+# Thread-safe sets and lock
+detected_labels = set()
+previously_seen = set()
+lock = threading.Lock()
+
+
+# Threaded speech worker
+def tts_worker():
+    while True:
+        time.sleep(3)  # Speak every 3 seconds
+
+        with lock:
+            if detected_labels:
+                for label in detected_labels:
+                    print(f"[SPEAKING] Detected {label}")
+                    engine.say(f"Detected {label}")
+                engine.runAndWait()
+                detected_labels.clear()
+
+
+# Start TTS thread
+tts_thread = threading.Thread(target=tts_worker, daemon=True)
+tts_thread.start()
 
 
 def generate_frames():
+    global previously_seen
+
     while True:
         success, frame = camera.read()
         if not success:
             break
 
-        # Optional: Flip image for natural webcam feel
         frame = cv2.flip(frame, 1)
 
-        # Run YOLO object detection
         results = model.predict(source=frame, stream=True, verbose=False)
 
-        # Draw results on the frame
+        current_seen = set()
+
         for result in results:
             for box in result.boxes:
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
@@ -36,7 +70,17 @@ def generate_frames():
                 cv2.putText(frame, f"{label} {conf:.2f}", (x1, y1 - 10),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
 
-        # Encode frame for browser
+                current_seen.add(label)
+
+        # Only speak newly detected labels
+        with lock:
+            new_labels = current_seen - previously_seen
+            previously_seen = current_seen
+
+            for label in new_labels:
+                detected_labels.add(label)
+
+        # Encode and yield frame
         ret, buffer = cv2.imencode('.jpg', frame)
         if not ret:
             continue
@@ -58,4 +102,7 @@ def video():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    try:
+        app.run(debug=True)
+    finally:
+        camera.release()
