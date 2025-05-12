@@ -1,5 +1,10 @@
 from flask import Flask, render_template, Response
 import cv2
+from ultralytics import YOLO
+
+# Load YOLO11x model (make sure the file exists at this path)
+model = YOLO("yolo11x.pt")
+
 
 app = Flask(__name__)
 
@@ -10,22 +15,35 @@ def generate_frames():
     while True:
         success, frame = camera.read()
         if not success:
-            print("Failed to read from webcam")
             break
-        else:
-            # Flip image horizontally (optional)
-            frame = cv2.flip(frame, 1)
 
-            # Encode frame as JPEG
-            ret, buffer = cv2.imencode('.jpg', frame)
-            if not ret:
-                print("Failed to encode frame")
-                continue
+        # Optional: Flip image for natural webcam feel
+        frame = cv2.flip(frame, 1)
 
-            frame_bytes = buffer.tobytes()
+        # Run YOLO object detection
+        results = model.predict(source=frame, stream=True, verbose=False)
 
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        # Draw results on the frame
+        for result in results:
+            for box in result.boxes:
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
+                cls_id = int(box.cls[0])
+                label = model.names[cls_id]
+                conf = box.conf[0].item()
+
+                # Draw bounding box
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(frame, f"{label} {conf:.2f}", (x1, y1 - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+
+        # Encode frame for browser
+        ret, buffer = cv2.imencode('.jpg', frame)
+        if not ret:
+            continue
+
+        frame_bytes = buffer.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
 
 @app.route('/')
