@@ -1,31 +1,91 @@
+/* static/style.css */
+
+/* reset body & center the app */
 body {
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: sans-serif;
   background: #f0f2f5;
   display: flex;
   justify-content: center;
+  /* Use min-height to allow vertical centering if desired */
+  min-height: 100vh;
   align-items: center;
-  height: 100vh;
 }
 
-.container {
-  text-align: center;
-  background: white;
+/* This holds both the video card and footer */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 90%;
+  max-width: 1200px;
+  margin: 20px 0;
+}
+
+/* White “card” around the live stream */
+.video-card {
+  background: #ffffff;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  text-align: center;
 }
 
-h1 {
+.video-card h1 {
+  margin-top: 0;
   color: #333;
-  margin-bottom: 20px;
 }
 
 #videoFeed {
-  max-width: 90%;
   width: 100%;
   height: auto;
+  max-height: 600px;
+  border: 3px solid #2196f3;
   border-radius: 10px;
-  border: 3px solid #3498db;
+  margin-top: 10px;
+}
+
+/* Footer sits directly under the video card */
+.app-footer {
+  margin-top: 20px;
+  background: #ffffff;
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  text-align: center;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+/* Authors list inline */
+.app-footer .authors ul {
+  list-style: none;
+  padding: 0;
+  margin: 5px 0;
+}
+.app-footer .authors li {
+  display: inline-block;
+  margin: 0 8px;
+}
+
+/* Repo link styling */
+.app-footer a {
+  color: #2196f3;
+  text-decoration: none;
+}
+.app-footer a:hover {
+  text-decoration: underline;
+}
+
+/* University section */
+.app-footer .university {
+  margin-top: 10px;
+}
+.university-logo {
+  height: 40px;
+  display: block;
+  margin: 0 auto 5px;
 }

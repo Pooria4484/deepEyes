@@ -1,3 +1,4 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -9,9 +10,40 @@
     />
   </head>
   <body>
-    <div class="container">
-      <h1>Deep Eyes</h1>
-      <img src="{{ url_for('video') }}" id="videoFeed" />
+    <div class="app-container">
+      <div class="video-card">
+        <h1>Deep Eyes</h1>
+        <img
+          src="{{ url_for('video') }}"
+          id="videoFeed"
+          alt="Live Video Feed"
+        />
+      </div>
+
+      <footer class="app-footer">
+        <div class="authors">
+          <p><strong>Authors:</strong></p>
+          <ul>
+            <li>Pouria Alaeinezhad</li>
+            <li>Maede Rahimi</li>
+            <li>Fatemeh Sharifi</li>
+          </ul>
+        </div>
+        <div class="repo">
+          <strong>Project Repository:</strong>
+          <a href="https://github.com/Pooria4484/deepEyes" target="_blank"
+            >github.com/Pooria4484/deepEyes</a
+          >
+        </div>
+        <div class="university">
+          <img
+            src="{{ url_for('static', filename='iut.png') }}"
+            alt="IUT Logo"
+            class="university-logo"
+          />
+          <p>Isfahan University of Technology</p>
+        </div>
+      </footer>
     </div>
   </body>
 </html>
