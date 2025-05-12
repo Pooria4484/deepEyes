@@ -179,7 +179,7 @@ deepEyes/
 
 - **Pouria Alaeinezhad** ([pooria.alaei1994@gmail.com](mailto:pooria.alaei1994@gmail.com))
 - **Maede Rahimi** ([maede739561@gmail.com](mailto:maede739561@gmail.com))
-- **Fatemeh Sharifi** ([fateme.work.sh@gmail.com](fateme.work.sh@gmail.com))
+- **Fatemeh Sharifi** ([fateme.work.sh@gmail.com](mailto:fateme.work.sh@gmail.com))
 
 ---
 
