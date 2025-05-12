@@ -1,6 +1,6 @@
 # MIT License
 #
-# Copyright (c) 2025 Pouria Alaeinezhad <pooria.alaei1994@gmail.com>, Maede Rahimi, Fatemeh Sharifi
+# Copyright (c) 2025 Pouria Alaeinezhad <pooria.alaei1994@gmail.com>, Maede Rahimi <maede739561@gmail.com>, Fatemeh Sharifi <fateme.work.sh@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the “Software”), to deal
