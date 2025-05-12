@@ -1,93 +1,87 @@
 from flask import Flask, render_template, Response
 import cv2
 from ultralytics import YOLO
-import pyttsx3
-import threading
+import subprocess
 import time
 
 app = Flask(__name__)
 
-# Load YOLO11x model
-model = YOLO("yolo11x.pt")
+# ─── Model & Camera Setup ──────────────────────────────────────────────────────
+model = YOLO("yolo11x.pt")        # path to your YOLO11x weights
+cam = cv2.VideoCapture(1)       # change index if needed
+cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-# Webcam setup
-camera = cv2.VideoCapture(1)  # Change to 1 if needed
-camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-
-# Text-to-speech setup
-engine = pyttsx3.init()
-engine.setProperty('rate', 150)
-
-# Thread-safe sets and lock
-detected_labels = set()
-previously_seen = set()
-lock = threading.Lock()
-
-
-# Threaded speech worker
-def tts_worker():
-    while True:
-        time.sleep(3)  # Speak every 3 seconds
-
-        with lock:
-            if detected_labels:
-                for label in detected_labels:
-                    print(f"[SPEAKING] Detected {label}")
-                    engine.say(f"Detected {label}")
-                engine.runAndWait()
-                detected_labels.clear()
-
-
-# Start TTS thread
-tts_thread = threading.Thread(target=tts_worker, daemon=True)
-tts_thread.start()
+# ─── Detection Scheduling ────────────────────────────────────────────────────────
+DETECT_INTERVAL = 5.0
+last_run = 0.0
+latest_boxes = []
 
 
 def generate_frames():
-    global previously_seen
+    global last_run, latest_boxes
 
     while True:
-        success, frame = camera.read()
-        if not success:
+        ret, frame = cam.read()
+        if not ret:
             break
 
         frame = cv2.flip(frame, 1)
+        now = time.time()
 
-        results = model.predict(source=frame, stream=True, verbose=False)
+        # only run detection every DETECT_INTERVAL seconds
+        if now - last_run >= DETECT_INTERVAL:
+            last_run = now
 
-        current_seen = set()
+            # 1) run YOLO
+            results = model.predict(source=frame, verbose=False)
+            labels = set()
+            boxes = []
 
-        for result in results:
-            for box in result.boxes:
-                x1, y1, x2, y2 = map(int, box.xyxy[0])
-                cls_id = int(box.cls[0])
-                label = model.names[cls_id]
-                conf = box.conf[0].item()
+            for r in results:
+                for b in r.boxes:
+                    x1, y1, x2, y2 = map(int, b.xyxy[0])
+                    cls = int(b.cls[0])
+                    name = model.names[cls]
+                    conf = float(b.conf[0])
 
-                # Draw bounding box
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                cv2.putText(frame, f"{label} {conf:.2f}", (x1, y1 - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                    labels.add(name)
+                    boxes.append((x1, y1, x2, y2, name, conf))
 
-                current_seen.add(label)
+            latest_boxes = boxes
 
-        # Only speak newly detected labels
-        with lock:
-            new_labels = current_seen - previously_seen
-            previously_seen = current_seen
+            # 2) build and speak phrase
+            if labels:
+                items = list(labels)
+                if len(items) == 1:
+                    phrase = items[0]
+                else:
+                    phrase = ", ".join(items[:-1]) + " and " + items[-1]
+                # non-blocking speak
+                subprocess.Popen(["say", f"Detected {phrase}"])
 
-            for label in new_labels:
-                detected_labels.add(label)
+        # 3) draw boxes on every frame
+        for x1, y1, x2, y2, name, conf in latest_boxes:
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.putText(frame,
+                        f"{name} {conf:.2f}",
+                        (x1, y1 - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.6,
+                        (0, 255, 0),
+                        2)
 
-        # Encode and yield frame
-        ret, buffer = cv2.imencode('.jpg', frame)
-        if not ret:
+        # 4) encode & stream
+        ret2, buf = cv2.imencode('.jpg', frame)
+        if not ret2:
             continue
 
-        frame_bytes = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        yield (
+            b'--frame\r\n'
+            b'Content-Type: image/jpeg\r\n\r\n' +
+            buf.tobytes() +
+            b'\r\n'
+        )
 
 
 @app.route('/')
@@ -97,12 +91,14 @@ def index():
 
 @app.route('/video')
 def video():
-    return Response(generate_frames(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(
+        generate_frames(),
+        mimetype='multipart/x-mixed-replace; boundary=frame'
+    )
 
 
 if __name__ == '__main__':
     try:
         app.run(debug=True)
     finally:
-        camera.release()
+        cam.release()
