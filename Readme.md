@@ -14,10 +14,6 @@
 - **Natural-language TTS** (macOS `say`, fallback options for Ubuntu/Windows)
 - **Clean web UI** showing live camera feed, bounding boxes, authors & repo link
 
-## Repository
-
-[https://github.com/Pooria4484/deepEyes](https://github.com/Pooria4484/deepEyes)
-
 ---
 
 ## Project Structure
@@ -31,10 +27,26 @@ deepEyes/
 │   └── style.css
 ├── templates/
 │   └── index.html
-├── venv/                   # (your virtual environment)
-└── yolo11x.pt              # YOLO11x weights file
-
+├── yolo11x.pt              # YOLO11x weights file
+└── venv/                   # (your virtual environment)
 ```
+
+---
+
+## Download Model Weights
+
+Before running the app, you must download the YOLO11x checkpoint into the project root:
+
+```bash
+# using wget
+wget https://huggingface.co/Ultralytics/YOLO11/resolve/main/yolo11x.pt
+```
+
+Or visit the model page and click “Download”:
+
+> [https://huggingface.co/Ultralytics/YOLO11/blob/main/yolo11x.pt](https://huggingface.co/Ultralytics/YOLO11/blob/main/yolo11x.pt)
+
+Make sure `yolo11x.pt` sits alongside `main.py`.
 
 ---
 
@@ -43,11 +55,11 @@ deepEyes/
 - Python 3.7+
 - `pip install -r requirements.txt`
 
-```bash
-  Flask
-  ultralytics
-  opencv-python
-  pyttsx3
+```text
+Flask
+ultralytics
+opencv-python
+pyttsx3
 ```
 
 ---
@@ -69,26 +81,27 @@ deepEyes/
    cd deepEyes
    ```
 
-3. **Create & activate** a virtual environment:
+3. **Download the model** as shown above.
+4. **Create & activate** a virtual environment:
 
    ```bash
    python3 -m venv venv
    source venv/bin/activate
    ```
 
-4. **Install dependencies**:
+5. **Install dependencies**:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-5. **Run the app**:
+6. **Run the app**:
 
    ```bash
    python main.py
    ```
 
-6. **Open** your browser at `http://127.0.0.1:5000/`
+7. **Open** your browser at `http://127.0.0.1:5000/`
 
 > macOS will use its built-in `say` command for TTS.
 
@@ -110,33 +123,34 @@ deepEyes/
    cd deepEyes
    ```
 
-3. **Create & activate** virtual environment:
+3. **Download the model** as shown above.
+4. **Create & activate** virtual environment:
 
    ```bash
    python3 -m venv venv
    source venv/bin/activate
    ```
 
-4. **Install Python dependencies**:
+5. **Install Python dependencies**:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-5. **Adjust TTS** in `main.py` (replace `["say", …]` with `["espeak", …]`):
+6. **Adjust TTS** in `main.py` (replace `["say", …]` with `["espeak", …]`):
 
    ```diff
    - subprocess.Popen(["say", f"Detected {phrase}"])
    + subprocess.Popen(["espeak", f"Detected {phrase}"])
    ```
 
-6. **Run the app**:
+7. **Run the app**:
 
    ```bash
    python main.py
    ```
 
-7. **Browse** to `http://127.0.0.1:5000/`
+8. **Browse** to `http://127.0.0.1:5000/`
 
 ---
 
@@ -150,26 +164,27 @@ deepEyes/
    cd deepEyes
    ```
 
-3. **Create & activate** a virtual environment:
+3. **Download the model** as shown above.
+4. **Create & activate** a virtual environment:
 
    ```powershell
    python -m venv venv
    venv\Scripts\activate
    ```
 
-4. **Install dependencies**:
+5. **Install dependencies**:
 
    ```powershell
    pip install -r requirements.txt
    ```
 
-5. **Run the app**:
+6. **Run the app**:
 
    ```powershell
    python main.py
    ```
 
-6. **Visit** `http://127.0.0.1:5000/` in your browser
+7. **Visit** `http://127.0.0.1:5000/` in your browser
 
 > On Windows, `pyttsx3` will use the built-in SAPI5 TTS engine.
 
